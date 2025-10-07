@@ -1,0 +1,392 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- PAQUETES BÁSICOS ---
+\usepackage[utf8]{inputenc}
+\usepackage{blindtext}
+\usepackage{titlesec}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{placeins}
+\geometry{margin=2.5cm}
+
+% --- CONFIGURACIÓN DE CÓDIGO ---
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{orange},
+  showstringspaces=false,
+  frame=single,
+  breaklines=true
+}
+
+% --- DATOS DE PORTADA ---
+\title{\textbf{Informe: Herencia, Clases Abstractas, Polimorfismo e Interfaces en Programación Orientada a Objetos}}
+\author{Denys Rodríguez}
+\date{7 de Octubre 2025}
+
+\begin{document}
+
+% --- PORTADA ---
+% --- PORTADA ---
+\begin{titlepage}
+\centering
+
+{\scshape\Large Universidad Católica de Temuco \par}
+{\scshape Departamento de Informática \par}
+\vspace{2cm}
+
+{\huge\bfseries Informe: Herencia, Clases Abstractas, Polimorfismo e Interfaces en Programación Orientada a Objetos \par}
+\vspace{1cm}
+{\Large Denys Rodríguez\par}
+\vspace{0.5cm}
+{\large 7 de Octubre de 2025\par}
+\vspace{2cm}
+
+\vspace{2cm}
+\begin{center}
+\begin{tabular}{ll}
+\textbf{Asignatura:} & Programación II \\[4pt]
+\textbf{Profesor:} & Guido Mellado \\[4pt]
+\textbf{Ciudad:} & Temuco, Chile \\
+\end{tabular}
+\end{center}
+
+\vfill
+
+\end{titlepage}
+
+
+\newpage
+\tableo
+
+% --- INTRODUCCIÓN ---
+\section{Introducción}
+La \textbf{Programación Orientada a Objetos (POO)} es un paradigma que busca modelar el mundo real dentro del software, a través de entidades llamadas \textbf{clases} y \textbf{objetos}.  
+Una clase define las características y comportamientos que tendrán sus objetos, mientras que los objetos son instancias concretas de esas clases.
+
+La POO promueve la reutilización de código, la abstracción, la modularidad y la escalabilidad. En este informe se abordarán los siguientes pilares fundamentales:
+\begin{itemize}
+    \item \textbf{Herencia:} mecanismo para reutilizar y extender código existente.
+    \item \textbf{Clases Abstractas:} estructuras base que definen comportamientos obligatorios.
+    \item \textbf{Polimorfismo:} capacidad de diferentes objetos para responder de manera distinta a un mismo método.
+    \item \textbf{Interfaces:} contratos que definen métodos sin implementación.
+    \item \textbf{Method Resolution Order (MRO):} orden de búsqueda de métodos en jerarquías de herencia múltiple.
+\end{itemize}
+
+\FloatBarrier
+
+% --- HERENCIA ---
+\section{Herencia}
+La \textbf{herencia} es uno de los pilares fundamentales de la POO. Permite que una clase, denominada \textbf{clase hija} o \textbf{subclase}, adquiera los atributos y métodos de otra clase, llamada \textbf{clase padre} o \textbf{superclase}.  
+Este mecanismo facilita la reutilización del código y la creación de jerarquías lógicas entre clases.
+
+Gracias a la herencia, es posible extender o modificar el comportamiento de una clase sin alterar su implementación original, favoreciendo la mantenibilidad del software.
+
+\subsection*{Ejemplo: Nómina}
+\begin{lstlisting}
+class Empleado:
+    def __init__(self, nombre, sueldo_base):
+        self.nombre = nombre
+        self.sueldo_base = sueldo_base
+
+    def calcular_salario(self):
+        # salario mínimo: solo base
+        return self.sueldo_base
+
+class Vendedor(Empleado):
+    def __init__(self, nombre, sueldo_base, ventas_mes, comision=0.03):
+        super().__init__(nombre, sueldo_base)
+        self.ventas_mes = ventas_mes
+        self.comision = comision
+
+    def calcular_salario(self):
+        # sobrescribe: base + comisión por ventas
+        return super().calcular_salario() + self.ventas_mes * self.comision
+
+class Desarrollador(Empleado):
+    def __init__(self, nombre, sueldo_base, horas_extra=0, tarifa_extra=8000):
+        super().__init__(nombre, sueldo_base)
+        self.horas_extra = horas_extra
+        self.tarifa_extra = tarifa_extra
+
+    def calcular_salario(self):
+        return super().calcular_salario() + self.horas_extra * self.tarifa_extra
+
+e1 = Vendedor("Ana", 900000, ventas_mes=12000000)  # + 3%
+e2 = Desarrollador("Luis", 1200000, horas_extra=10)
+print(e1.calcular_salario())  # 900000 + 360000
+print(e2.calcular_salario())  # 1200000 + 80000
+\end{lstlisting}
+
+
+
+
+
+\subsubsection*{Análisis}
+\begin{itemize}
+    \item \textbf{Jerarquía:} \texttt{Vendedor} y \texttt{Desarrollador} heredan de \texttt{Empleado}. Comparten el contrato \texttt{calcular\_salario()}, pero cada uno lo \emph{especializa}.
+    \item \textbf{Reutilización con \texttt{super()}:} ambas subclases invocan \texttt{super().calcular\_salario()} para reutilizar el salario base y \emph{sumar} su propia lógica (comisión u horas extra).
+    \item \textbf{Encapsulamiento:} los datos relevantes (ventas, comisión, horas, tarifa) se guardan como atributos de instancia, aislando responsabilidades por rol.
+    \item \textbf{Extensibilidad:} agregar otra subclase (p.\,ej., \texttt{Gerente} con bono) no rompe el diseño; sólo sobreescribe \texttt{calcular\_salario()}.
+    \item \textbf{Prueba de comportamiento:} \texttt{e1} y \texttt{e2} demuestran resultados diferentes con el mismo mensaje \texttt{calcular\_salario()}, lo que ya anticipa polimorfismo por herencia.
+\end{itemize}
+
+% --- CLASES ABSTRACTAS ---
+\section{Clases Abstractas}
+Las \textbf{clases abstractas} son clases que no pueden ser instanciadas directamente.  
+Su propósito es servir como \textbf{plantillas} para otras clases, definiendo métodos que deben ser implementados obligatoriamente por sus subclases.
+
+En Python, se definen mediante el módulo \texttt{abc} (Abstract Base Classes). Estas clases establecen un marco común para un grupo de clases relacionadas.
+
+\subsection*{Ejemplo: Pasarela de pagos}
+\begin{lstlisting}
+from abc import ABC, abstractmethod
+
+class ProcesadorPago(ABC):
+    @abstractmethod
+    def validar(self, monto): ...
+    @abstractmethod
+    def capturar(self, monto): ...
+    @abstractmethod
+    def reembolsar(self, monto): ...
+
+class PagoTarjeta(ProcesadorPago):
+    def validar(self, monto):
+        if monto <= 0: raise ValueError("Monto inválido")
+        print("[Tarjeta] Validación antifraude OK")
+    def capturar(self, monto):
+        print(f"[Tarjeta] Captura por ${monto:,.0f}")
+    def reembolsar(self, monto):
+        print(f"[Tarjeta] Reembolso por ${monto:,.0f}")
+
+class PagoCrypto(ProcesadorPago):
+    def validar(self, monto):
+        if monto < 1000: raise ValueError("Mínimo en crypto: 1000")
+        print("[Crypto] Validación de saldo OK")
+    def capturar(self, monto):
+        print(f"[Crypto] TX on-chain por ${monto:,.0f}")
+    def reembolsar(self, monto):
+        print(f"[Crypto] TX de devolución por ${monto:,.0f}")
+
+def checkout(procesador: ProcesadorPago, monto):
+    procesador.validar(monto)
+    procesador.capturar(monto)
+
+checkout(PagoTarjeta(), 150000)
+checkout(PagoCrypto(), 200000)
+\end{lstlisting}
+
+\subsubsection*{Análisis}
+\begin{itemize}
+    \item \textbf{Contrato obligatorio:} \texttt{ProcesadorPago} (ABC) define los métodos \texttt{validar}, \texttt{capturar} y \texttt{reembolsar}. No se puede instanciar y obliga a que las subclases implementen el contrato.
+    \item \textbf{Sustitución segura:} \texttt{PagoTarjeta} y \texttt{PagoCrypto} se pueden usar indistintamente en \texttt{checkout()}, cumpliendo el Principio de Sustitución de Liskov.
+    \item \textbf{Variación por tipo:} cada procesador aplica reglas distintas (mínimos, antifraude, TX on-chain) sin cambiar el \emph{uso} por parte del cliente.
+    \item \textbf{Escalabilidad:} incorporar \texttt{PagoTransferencia} o \texttt{PagoWallet} sólo requiere implementar el contrato; el resto del sistema permanece estable.
+    \item \textbf{Manejo de errores:} las validaciones tempranas (\texttt{ValueError}) expresan reglas de dominio y previenen estados inválidos.
+\end{itemize}
+
+
+\textbf{Beneficios:}
+\begin{itemize}
+    \item Obligan a mantener una estructura uniforme en las subclases.
+    \item Facilitan el diseño modular y la escalabilidad del sistema.
+    \item Separan la definición de la implementación.
+\end{itemize}
+
+\FloatBarrier
+
+% --- POLIMORFISMO ---
+\section{Polimorfismo}
+El \textbf{polimorfismo} significa “muchas formas”.  
+En la POO, este principio permite que un mismo método tenga diferentes comportamientos según el tipo de objeto que lo invoque.
+
+Esto fomenta la flexibilidad, ya que se puede invocar el mismo método en diferentes clases sin conocer su implementación exacta.
+
+\subsection*{Ejemplo: Exportadores}
+\begin{lstlisting}
+class Exportador:
+    def exportar(self, datos): raise NotImplementedError
+
+class ExportarPDF(Exportador):
+    def exportar(self, datos):
+        return f"[PDF] {len(datos)} registros"
+
+class ExportarCSV(Exportador):
+    def exportar(self, datos):
+        return "col1,col2\n" + "\n".join(f"{x[0]},{x[1]}" for x in datos)
+
+class ExportarJSON(Exportador):
+    def exportar(self, datos):
+        import json
+        return json.dumps({"registros": datos}, ensure_ascii=False)
+
+datos = [(1,"ok"), (2,"fail")]
+for exp in (ExportarPDF(), ExportarCSV(), ExportarJSON()):
+    print(exp.exportar(datos))
+\end{lstlisting}
+
+
+\subsubsection*{Análisis}
+\begin{itemize}
+    \item \textbf{Mismo mensaje, respuestas distintas:} \texttt{exportar(datos)} produce salidas diferentes según la clase concreta (PDF/CSV/JSON).
+    \item \textbf{Desacoplamiento:} el código cliente itera por \texttt{Exportador} sin conocer implementaciones. Permite inyectar nuevos formatos sin editar el bucle.
+    \item \textbf{Single Responsibility:} cada clase se concentra en un \emph{formato}. Evita \emph{if/else} por tipo y facilita pruebas unitarias.
+    \item \textbf{Extensión sencilla:} añadir \texttt{ExportarXML} o \texttt{ExportarXLSX} no afecta a \texttt{Exportador} ni al cliente.
+\end{itemize}
+
+
+% --- INTERFACES ---
+\section{Interfaces}
+Una \textbf{interfaz} es una estructura que define un conjunto de métodos que una clase debe implementar, sin especificar cómo hacerlo.  
+Las interfaces permiten que diferentes clases compartan un mismo conjunto de métodos, asegurando consistencia en el comportamiento.
+
+En Python, se pueden simular mediante clases abstractas con métodos abstractos.
+
+\subsection*{Ejemplo: Notificador}
+\begin{lstlisting}
+from abc import ABC, abstractmethod
+
+class Notificador(ABC):
+    @abstractmethod
+    def enviar(self, para, mensaje): ...
+
+class EmailNotifier(Notificador):
+    def enviar(self, para, mensaje):
+        print(f"[Email] A: {para} | {mensaje}")
+
+class SMSNotifier(Notificador):
+    def enviar(self, para, mensaje):
+        print(f"[SMS] A: {para} | {mensaje}")
+
+class PushNotifier(Notificador):
+    def enviar(self, para, mensaje):
+        print(f"[Push] A: {para} | {mensaje}")
+
+def alertar(notificador: Notificador, usuarios, mensaje):
+    for u in usuarios:
+        notificador.enviar(u, mensaje)
+
+alertar(SMSNotifier(), ["+56911111111","+56922222222"], "Código 2FA: 839211")
+\end{lstlisting}
+
+\subsubsection*{Análisis}
+\begin{itemize}
+    \item \textbf{Contrato explícito:} \texttt{Notificador} define \texttt{enviar(para, mensaje)}. Cualquier canal que lo implemente es compatible con \texttt{alertar()}.
+    \item \textbf{Inversión de dependencias:} \texttt{alertar()} depende de la \emph{abstracción} \texttt{Notificador}, no de concretos. Permite cambiar el canal sin tocar la lógica de alertas.
+    \item \textbf{Polimorfismo por interfaz:} Email/SMS/Push cumplen el mismo método con detalles distintos (formato, destino).
+    \item \textbf{Fácil de testear:} se puede inyectar un \texttt{FakeNotifier} para pruebas sin enviar mensajes reales.
+\end{itemize}
+
+
+\textbf{Beneficios de las interfaces:}
+\begin{itemize}
+    \item Aumentan la interoperabilidad entre componentes.
+    \item Favorecen la programación orientada a contratos.
+    \item Facilitan el trabajo en equipos de desarrollo, ya que definen reglas claras.
+\end{itemize}
+
+\FloatBarrier
+
+% --- MRO ---
+% --- MRO ---
+\section{Method Resolution Order (MRO)}
+
+El \textbf{Method Resolution Order (MRO)} es el mecanismo interno que utiliza Python para determinar el orden en el que se buscan los métodos y atributos dentro de una jerarquía de clases, especialmente cuando existe \textbf{herencia múltiple}.  
+Su objetivo es resolver de manera ordenada y coherente qué método debe ejecutarse cuando varias clases antecesoras definen el mismo nombre de método o atributo.
+
+\subsection*{Importancia del MRO}
+El MRO evita ambigüedades en la herencia múltiple. Por ejemplo, si una clase hereda de dos clases que a su vez comparten un ancestro común, Python necesita un criterio lógico para decidir qué método ejecutar sin causar conflictos.  
+Sin este orden, el programa podría volverse impredecible o lanzar errores por referencias circulares.
+
+Python utiliza un algoritmo llamado \textbf{C3 Linearization} para calcular este orden.  
+Este algoritmo garantiza:
+\begin{itemize}
+    \item Que el orden de búsqueda sea \textbf{consistente} y \textbf{predecible}.
+    \item Que las clases hijas siempre tengan prioridad sobre las clases padres.
+    \item Que se mantenga el orden de declaración de las clases en la definición de la herencia.
+\end{itemize}
+
+\subsection*{Ejemplo: Mixins y MRO cooperativo}
+\begin{lstlisting}
+class BaseService:
+    def procesar(self, data):
+        # capa base
+        return {"data": data, "pasos": ["base"]}
+
+class AuthMixin(BaseService):
+    def procesar(self, data):
+        res = super().procesar(data)
+        res["pasos"].append("auth")
+        return res
+
+class LoggerMixin(BaseService):
+    def procesar(self, data):
+        res = super().procesar(data)
+        res["pasos"].append("log")
+        return res
+
+class CacheMixin(BaseService):
+    def procesar(self, data):
+        res = super().procesar(data)
+        res["pasos"].append("cache")
+        return res
+
+# Orden heredado: izquierda -> derecha define la prioridad en MRO
+class Servicio(CacheMixin, LoggerMixin, AuthMixin, BaseService):
+    pass
+
+s = Servicio()
+print(Servicio.mro())  # observa el orden linealizado
+print(s.procesar({"id": 7}))
+\end{lstlisting}
+
+\subsubsection*{Análisis}
+\begin{itemize}
+    \item \textbf{Herencia múltiple cooperativa:} cada mixin añade una “capa” al método \texttt{procesar()} y llama a \texttt{super()} para encadenar la ejecución.
+    \item \textbf{Orden definido por MRO:} con \texttt{class Servicio(CacheMixin, LoggerMixin, AuthMixin, BaseService)}, el MRO típico será: \\
+    \texttt{Servicio → CacheMixin → LoggerMixin → AuthMixin → BaseService → object}.
+    \item \textbf{Efecto observable:} la lista \texttt{pasos} muestra el orden real de invocación (\texttt{["base","cache","log","auth"]}). Cambiar el orden de herencia cambia el orden de pasos.
+    \item \textbf{Reglas C3 respetadas:} el algoritmo garantiza prioridad de la subclase, preserva el orden de las bases y evita diamantes ambiguos.
+    \item \textbf{Buenas prácticas:} todos los mixins deben llamar a \texttt{super()} y devolver el resultado para mantener la cadena cooperativa.
+\end{itemize}
+
+
+\subsection*{Fórmula general del algoritmo C3}
+El MRO se calcula siguiendo la fórmula:
+\[
+L(C) = C + merge(L(P_1), L(P_2), ..., P_1, P_2, ...)
+\]
+Donde:
+\begin{itemize}
+    \item \(L(C)\) representa la linealización (orden) de la clase \(C\).
+    \item \(P_1, P_2, ...\) son las superclases directas de \(C\).
+    \item El operador \textit{merge} combina las listas de manera que se respete el orden de precedencia sin duplicar clases.
+\end{itemize}
+
+
+\subsection*{Comparación con otros lenguajes}
+En lenguajes como Java o C\#, la herencia múltiple directa de clases no está permitida precisamente por la complejidad de la resolución de métodos.  
+Python, en cambio, la admite gracias a este algoritmo MRO, que garantiza un comportamiento estable y bien definido.
+
+\subsection*{Conclusión de la sección}
+El \textbf{MRO} es fundamental para entender cómo Python maneja la herencia múltiple sin ambigüedades.  
+Conocer su funcionamiento permite escribir jerarquías de clases complejas de manera segura y entender el flujo de ejecución de los métodos dentro de un programa orientado a objetos.
+
+% --- CONCLUSIÓN ---
+\section{Conclusión}
+Los conceptos analizados en este informe constituyen los pilares esenciales de la Programación Orientada a Objetos.  
+La \textbf{herencia} fomenta la reutilización, las \textbf{clases abstractas} y las \textbf{interfaces} aportan estructura, y el \textbf{polimorfismo} otorga flexibilidad.  
+Finalmente, el \textbf{MRO} asegura que Python maneje correctamente la herencia múltiple sin ambigüedades.
+
+Dominar estos conceptos permite construir sistemas más organizados, eficientes y fáciles de mantener, aplicables tanto en proyectos pequeños como en grandes arquitecturas de software.
+
+\end{document}
